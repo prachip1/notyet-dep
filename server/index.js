@@ -15,19 +15,30 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: '*',
+  origin: 'https://notyetva.netlify.app/',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'X-API-Key', 'Authorization'],
 }));
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 // Multer setup (Storing files temporarily)
 const upload = multer({ dest: 'uploads/' });
+
+// Using OCR and other API routes
+app.use('/api', notyetRoutes);
+
+// Sample route (no longer protected by Clerk)
+app.get('/api/hello', (req, res) => {
+  res.json({ message: 'Hello from the backend!' });
+});
 
 // 🎤 Voice Assistant API: Upload & Process Audio
 app.post('/api/process-audio', upload.single('audio'), async (req, res) => {
