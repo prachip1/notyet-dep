@@ -63,6 +63,11 @@ app.post('/api/process-audio', upload.single('audio'), async (req, res) => {
 // Using OCR and other API routes
 app.use('/api', notyetRoutes);
 
+// Sample route (no longer protected by Clerk)
+app.get('/api/hello', (req, res) => {
+  res.json({ message: 'Hello from the backend!' });
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
