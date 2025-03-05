@@ -41,7 +41,7 @@ const router = express.Router();
 
 //ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
-const storage = multer.diskStorage({
+/*const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
   },
@@ -50,7 +50,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage });*/
 
 // Saving user's name from the welcome.jsx
 router.post('/savinguser', async (req, res) => {

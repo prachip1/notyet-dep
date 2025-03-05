@@ -1,5 +1,9 @@
 import OpenAI from 'openai';
+import { bucket } from '../utils/firebase.js'; // Import Firebase storage
+import { getDownloadURL, ref } from 'firebase/storage';
+import axios from 'axios';
 import fs from 'fs';
+import path from 'path';
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing OpenAI API Key. Please set OPENAI_API_KEY in .env");
@@ -9,12 +13,26 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const transcribeAudio = async (filePath) => {
+export const transcribeAudio = async (firebaseFilePath) => {
   try {
+      //get the download url of the file
+      const fileRef = ref(bucket, firebaseFilePath);
+      const downloadURL = await getDownloadURL(fileRef);
+
+
+      // download the file to temp location
+
+      const tempFilePath = path.join('/tmp', path.basename(firebaseFilePath)); // Use /tmp for temporary storage
+      const response = await axios.get(downloadURL, { responseType: 'arraybuffer' });
+      fs.writeFileSync(tempFilePath, response.data);
+
+
+
     const transcription = await openai.audio.transcriptions.create({
-      file: fs.createReadStream(filePath),
+      file: fs.createReadStream(tempFilePath),
       model: 'whisper-1',
     });
+    fs.unlinkSync(tempFilePath); // Delete the temporary file
     return transcription.text;
   } catch (error) {
     console.error("Error transcribing audio:", error);

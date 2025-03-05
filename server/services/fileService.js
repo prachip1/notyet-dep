@@ -1,15 +1,12 @@
-import fs from 'fs/promises';
+import { bucket } from "../utils/firebase.js";
+import { ref, deleteObject } from "firebase/storage";
 
 export const deleteFile = async (filePath) => {
   try {
-    await fs.access(filePath); // Check if file exists
-    await fs.unlink(filePath);
-    console.log(`Deleted file: ${filePath}`);
+    const fileRef = ref(bucket, filePath);
+    await deleteObject(fileRef);
+    console.log(`Deleted file from Firebase Storage: ${filePath}`);
   } catch (error) {
-    if (error.code === 'ENOENT') {
-      console.warn(`File not found: ${filePath}`);
-    } else {
-      console.error(`Error deleting file: ${filePath}`, error);
-    }
+    console.error(`Error deleting file from Firebase: ${filePath}`, error);
   }
 };
