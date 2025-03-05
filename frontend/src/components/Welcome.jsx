@@ -17,13 +17,13 @@ export default function Welcome() {
     try {
       const res = await axios.post('https://notyet-dep.vercel.app/api/savinguser', { name, clerkUserId: user.id });
       if (res.status === 201) {
-        console.log('User saved successfully');
+       // console.log('User saved successfully');
          naviagte('/talktome');
       } else {
-        console.error('Failed to save user');
+        //console.error('Failed to save user');
       }
     } catch (error) {
-      console.error('Error:', error);
+      //console.error('Error:', error);
     }
   };
 

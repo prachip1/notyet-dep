@@ -24,11 +24,11 @@ const TalkToMe = () => {
     const fetchUser = async () => {
       try {
         const res = await axios.get(`https://notyet-dep.vercel.app/api/getuser/${user.id}`);
-        console.log(res.data);
+       // console.log(res.data);
         setUserData(res.data);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching user:", error);
+       // console.error("Error fetching user:", error);
       }
     };
 
@@ -42,13 +42,13 @@ const TalkToMe = () => {
     recognition.current.lang = "en-US";
 
     recognition.current.onstart = () => {
-      console.log("Listening...");
+     // console.log("Listening...");
       setIsListening(true);
     };
 
     recognition.current.onresult = async (event) => {
       const transcript = event.results[0][0].transcript;
-      console.log("Recognized:", transcript);
+      //console.log("Recognized:", transcript);
       recognition.current.stop();
       setIsListening(false);
       sendToServer(transcript);
@@ -60,13 +60,13 @@ const TalkToMe = () => {
     };
 
     recognition.current.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
+      //console.error("Speech recognition error:", event.error);
       setIsListening(false);
     };
   }, []);
 
   const sendToServer = async (text) => {
-    console.log("Sending to server:", text);
+    //console.log("Sending to server:", text);
 
     try {
       const response = await axios.post(
@@ -78,16 +78,16 @@ const TalkToMe = () => {
         }
       );
 
-      console.log("Server response:", response);
+      //console.log("Server response:", response);
       playAudio(response.data);
     } catch (error) {
-      console.error("Error sending text to server:", error);
+      //console.error("Error sending text to server:", error);
     }
   };
 
   const playAudio = (audioData) => {
     if (!audioData || audioData.byteLength === 0) {
-      console.error("Received empty audio data from server.");
+     // console.error("Received empty audio data from server.");
       return;
     }
 

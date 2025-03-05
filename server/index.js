@@ -45,18 +45,18 @@ app.post('/api/process-audio', upload.single('audio'), async (req, res) => {
         contentType: req.file.mimetype,
       },
     });
-    console.log('✅ File uploaded to Firebase Storage:', fileName);
+   // console.log('✅ File uploaded to Firebase Storage:', fileName);
     // Generate a public URL for the file
     const [url] = await fileRef.getSignedUrl({
       action: 'read',
       expires: '03-09-2491',
     });
 
-    console.log('File uploaded to:', url);
+   // console.log('File uploaded to:', url);
 
     // Step 2: Convert Speech to Text
     const userInput = await transcribeAudio(url);
-    console.log('User said:', userInput);
+    //console.log('User said:', userInput);
 
     if (!userInput) {
       return res.status(400).json({ error: 'Could not transcribe audio' });
