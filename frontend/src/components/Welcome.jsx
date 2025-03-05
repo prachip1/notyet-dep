@@ -15,7 +15,7 @@ export default function Welcome() {
   const savingName = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/savinguser', { name, clerkUserId: user.id });
+      const res = await axios.post('https://notyet-dep.vercel.app/api/savinguser', { name, clerkUserId: user.id });
       if (res.status === 201) {
         console.log('User saved successfully');
          naviagte('/talktome');
