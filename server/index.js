@@ -72,7 +72,9 @@ app.post('/api/process-audio', upload.single('audio'), async (req, res) => {
 
 // Using OCR and other API routes
 app.use('/api', notyetRoutes);
-
+app.use('/api/hello', (req, res) => {
+  res.json({ message: 'Hello from the server!' });
+});
 // Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
