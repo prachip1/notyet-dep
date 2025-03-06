@@ -11,6 +11,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  quotaNumber:{
+    type:Number,
+    default:5
+  },
   dateJoined: {
     type: Date,
     default: Date.now

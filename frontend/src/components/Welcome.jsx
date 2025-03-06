@@ -1,29 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 
 export default function Welcome() {
   const [name, setName] = useState('');
-  const naviagte = useNavigate();
- const {user} = useUser();
+  const navigate = useNavigate();
+  const { user } = useUser();
 
+  // Check if the user already exists
+  useEffect(() => {
+    if (!user) return;
 
+    const checkUserExists = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/check-user/${user.id}`);
+        if (res.data.exists) {
+          // User already exists, redirect to TalkToMe page
+          navigate('/talktome');
+        }
+      } catch (error) {
+        console.error('Error checking user:', error);
+      }
+    };
 
-
+    checkUserExists();
+  }, [user, navigate]);
 
   const savingName = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('https://notyet-dep.vercel.app/api/savinguser', { name, clerkUserId: user.id });
+      const res = await axios.post('http://localhost:5000/api/savinguser', {
+        name,
+        clerkUserId: user.id,
+      });
       if (res.status === 201) {
-       // console.log('User saved successfully');
-         naviagte('/talktome');
+        console.log('User saved successfully');
+        navigate('/talktome');
       } else {
-        //console.error('Failed to save user');
+        console.error('Failed to save user');
       }
     } catch (error) {
-      //console.error('Error:', error);
+      console.error('Error:', error);
     }
   };
 
@@ -46,7 +64,7 @@ export default function Welcome() {
           />
           <button
             type="submit"
-            className="w-full bg-indigo-900 text-white py-3 rounded-lg hover:bg-indigo-950 transition-colors font-medium"
+            className="w-full text-neutral-content bg-neutral py-3 rounded-lg hover:bg-indigo-950 transition-colors font-medium"
           >
             Save my name
           </button>

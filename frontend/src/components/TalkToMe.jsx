@@ -8,6 +8,7 @@ const TalkToMe = () => {
   const [isListening, setIsListening] = useState(false);
   const [responseAudio, setResponseAudio] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [quotaExhausted, setQuotaExhausted] = useState(false);
   const recognition = useRef(null);
   const audioRef = useRef(null);
   const waveSurferRef = useRef(null);
@@ -23,17 +24,51 @@ const TalkToMe = () => {
 
     const fetchUser = async () => {
       try {
-        const res = await axios.get(`https://notyet-dep.vercel.app/api/getuser/${user.id}`);
-       // console.log(res.data);
+        const res = await axios.get(`http://localhost:5000/api/getuser/${user.id}`);
+        console.log(res.data);
         setUserData(res.data);
         setLoading(false);
       } catch (error) {
-       // console.error("Error fetching user:", error);
+        console.error("Error fetching user:", error);
       }
     };
 
     fetchUser();
   }, [user]);
+
+  const checkQuota = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/check-quota", {
+        clerkUserId: user.id,
+      });
+
+      if (response.data.error) {
+        setQuotaExhausted(true);
+        alert(response.data.error); // Notify the user
+      }
+    } catch (error) {
+      console.error("Error checking quota:", error);
+      if (error.response && error.response.status === 403) {
+        setQuotaExhausted(true);
+        alert("Quota exhausted. Please try again after 24 hours.");
+      }
+    }
+  };
+
+  const decrementQuota = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/decrement-quota", {
+        clerkUserId: user.id,
+      });
+
+      if (response.data.error) {
+        setQuotaExhausted(true);
+        alert(response.data.error); // Notify the user
+      }
+    } catch (error) {
+      console.error("Error decrementing quota:", error);
+    }
+  };
 
   useEffect(() => {
     recognition.current = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -42,16 +77,23 @@ const TalkToMe = () => {
     recognition.current.lang = "en-US";
 
     recognition.current.onstart = () => {
-     // console.log("Listening...");
+      console.log("Listening...");
       setIsListening(true);
     };
 
     recognition.current.onresult = async (event) => {
       const transcript = event.results[0][0].transcript;
-      //console.log("Recognized:", transcript);
+      console.log("Recognized:", transcript);
       recognition.current.stop();
       setIsListening(false);
-      sendToServer(transcript);
+
+      // Check quota before sending the message
+      await checkQuota();
+      if (!quotaExhausted) {
+        // Decrement the quota only when the user sends a message
+        await decrementQuota();
+        sendToServer(transcript);
+      }
     };
 
     recognition.current.onspeechend = () => {
@@ -60,17 +102,17 @@ const TalkToMe = () => {
     };
 
     recognition.current.onerror = (event) => {
-      //console.error("Speech recognition error:", event.error);
+      console.error("Speech recognition error:", event.error);
       setIsListening(false);
     };
-  }, []);
+  }, [quotaExhausted]);
 
   const sendToServer = async (text) => {
-    //console.log("Sending to server:", text);
+    console.log("Sending to server:", text);
 
     try {
       const response = await axios.post(
-        "https://notyet-dep.vercel.app/api/voice-assist",
+        "http://localhost:5000/api/voice-assist",
         { text },
         {
           headers: { "Content-Type": "application/json" },
@@ -78,16 +120,16 @@ const TalkToMe = () => {
         }
       );
 
-      //console.log("Server response:", response);
+      console.log("Server response:", response);
       playAudio(response.data);
     } catch (error) {
-      //console.error("Error sending text to server:", error);
+      console.error("Error sending text to server:", error);
     }
   };
 
   const playAudio = (audioData) => {
     if (!audioData || audioData.byteLength === 0) {
-     // console.error("Received empty audio data from server.");
+      console.error("Received empty audio data from server.");
       return;
     }
 
@@ -143,6 +185,20 @@ const TalkToMe = () => {
   };
 
   if (loading) return <p className="text-center text-2xl">Loading user data...</p>;
+
+  if (quotaExhausted) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20">
+        <h2 className="text-4xl text-center text-gray-900">
+          Quota Exhausted
+        </h2>
+        <p className="text-lg text-gray-800 mt-4">
+          You have used your daily quota. Please try again after 24 hours.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center p-20">
       <div className="flex flex-col justify-center items-center gap-6 mt-24">
@@ -150,9 +206,15 @@ const TalkToMe = () => {
           <span className="text-xl">Hello {userData?.name},</span><br></br>  <span className="font-medium text-2xl">click the button and let's talk!</span> 
         </h2>
         <button
-          onClick={() => recognition.current.start()}
+          onClick={() => {
+            if (!quotaExhausted) {
+              recognition.current.start();
+            }
+          }}
+          disabled={quotaExhausted}
           className={`relative flex items-center justify-center p-8 rounded-full shadow-md shadow-pink-300 transition-all duration-300 mt-8  
             ${isListening ? "animate-glow bg-gradient-to-r from-purple-700 via-pink-300 to-sky-300 shadow-xl shadow-neutral-700" : "bg-neutral"}
+            ${quotaExhausted ? "opacity-50 cursor-not-allowed" : ""}
           `}
         >
           {!isListening && (

@@ -52,13 +52,20 @@ const router = express.Router();
 
 const upload = multer({ storage: storage });*/
 
-// Saving user's name from the welcome.jsx
 router.post('/savinguser', async (req, res) => {
-  const { name,clerkUserId } = req.body;
+  const { name, clerkUserId } = req.body;
 
   try {
-    const newUser = new User({ name,clerkUserId });
+    // Check if the user already exists
+    const existingUser = await User.findOne({ clerkUserId });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
+    // Create a new user (quotaNumber will default to 5)
+    const newUser = new User({ name, clerkUserId });
     await newUser.save();
+
     res.status(201).json({ message: 'User saved successfully' });
   } catch (error) {
     console.error('Error saving user:', error);
@@ -160,6 +167,81 @@ router.post("/voice-assist", async (req, res) => {
 router.post('/reset-conversation', async (req, res) => {
   resetConversation();
   res.json({ message: 'Conversation reset successfully' });
+});
+
+
+
+router.post('/check-quota', async (req, res) => {
+  const { clerkUserId } = req.body;
+
+  try {
+    // Find the user
+    const user = await User.findOne({ clerkUserId });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if the quota is exhausted
+    if (user.quotaNumber <= 0) {
+      // Check if 24 hours have passed since the last login
+      const now = new Date();
+      const lastLogin = new Date(user.lastLogin);
+      const hoursSinceLastLogin = (now - lastLogin) / (1000 * 60 * 60);
+
+      if (hoursSinceLastLogin < 24) {
+        return res.status(403).json({ error: 'Quota exhausted. Please try again after 24 hours.' });
+      } else {
+        // Reset the quota and update lastLogin
+        user.quotaNumber = 5;
+        user.lastLogin = now;
+        await user.save();
+      }
+    }
+
+    // Decrement the quota
+    user.quotaNumber -= 1;
+    user.lastLogin = new Date();
+    await user.save();
+
+    res.json({ quotaNumber: user.quotaNumber });
+  } catch (error) {
+    console.error('Error checking quota:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+router.post('/decrement-quota', async (req, res) => {
+  const { clerkUserId } = req.body;
+
+  try {
+    const user = await User.findOne({ clerkUserId });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Decrement the quota
+    user.quotaNumber -= 1;
+    user.lastLogin = new Date();
+    await user.save();
+
+    res.json({ quotaNumber: user.quotaNumber });
+  } catch (error) {
+    console.error('Error decrementing quota:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/check-user/:clerkUserId', async (req, res) => {
+  try {
+    const user = await User.findOne({ clerkUserId: req.params.clerkUserId });
+    if (user) {
+      return res.json({ exists: true });
+    } else {
+      return res.json({ exists: false });
+    }
+  } catch (error) {
+    console.error('Error checking user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 export default router;
