@@ -19,7 +19,7 @@ export default function Navigation() {
         onClick={()=>navigate('/signup')}>Let's Talk</button>
        
        }
-      {user && <p>Welcome</p>}
+      {user && <p className='flex items-center font-manrope'>Welcome</p>}
         <div className=''>  
       <SignedOut>
           <li 
