@@ -14,7 +14,7 @@ export default function Welcome() {
 
     const checkUserExists = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/check-user/${user.id}`);
+        const res = await axios.get(`https://notyet-dep.vercel.app/api/check-user/${user.id}`);
         if (res.data.exists) {
           // User already exists, redirect to TalkToMe page
           navigate('/talktome');
@@ -30,7 +30,7 @@ export default function Welcome() {
   const savingName = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/savinguser', {
+      const res = await axios.post('https://notyet-dep.vercel.app/api/savinguser', {
         name,
         clerkUserId: user.id,
       });

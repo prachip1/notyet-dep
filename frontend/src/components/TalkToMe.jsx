@@ -24,7 +24,7 @@ const TalkToMe = () => {
 
     const fetchUser = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/getuser/${user.id}`);
+        const res = await axios.get(`https://notyet-dep.vercel.app/api/getuser/${user.id}`);
         console.log(res.data);
         setUserData(res.data);
         setLoading(false);
@@ -38,7 +38,7 @@ const TalkToMe = () => {
 
   const checkQuota = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/check-quota", {
+      const response = await axios.post("https://notyet-dep.vercel.app/api/check-quota", {
         clerkUserId: user.id,
       });
 
@@ -57,7 +57,7 @@ const TalkToMe = () => {
 
   const decrementQuota = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/decrement-quota", {
+      const response = await axios.post("https://notyet-dep.vercel.app/api/decrement-quota", {
         clerkUserId: user.id,
       });
 
@@ -112,7 +112,7 @@ const TalkToMe = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/voice-assist",
+        "https://notyet-dep.vercel.app/api/voice-assist",
         { text },
         {
           headers: { "Content-Type": "application/json" },
